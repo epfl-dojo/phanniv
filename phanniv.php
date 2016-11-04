@@ -1,9 +1,10 @@
 <?php
 /*
  * Get data from the ./data.csv file
-*/
-function getCSVData()
-{
+ */
+$errors = array();
+
+function getCSVData() {
     $csvData = array_map('str_getcsv', file('data.csv'));
     $csvHeader = array_shift($csvData);
     $data = array();
@@ -18,8 +19,8 @@ function getCSVData()
 }
 
 /* Same as getCSVData() but works if number of header change */
-function getDynCSVData()
-{
+
+function getDynCSVData() {
     $csvData = array_map('str_getcsv', file('data.csv'));
     $csvHeader = array_shift($csvData);
     $retData = array();
@@ -34,15 +35,14 @@ function getDynCSVData()
 /*
  * Retourne la liste des personnes qui ont leur anniversaire aujourd'hui
  */
-function checkAnniversaires($data)
-{
+
+function checkAnniversaires($data) {
     $bdToday = array();
     $todayMonth = date('m');
     $todayDay = date('d');
     foreach ($data as $key => $value) {
         /* Testing if month + day match today */
-        if ((substr($value['DateISO'], 5, 2) == $todayMonth)
-            && (substr($value['DateISO'], -2) == $todayDay)) {
+        if ((substr($value['DateISO'], 5, 2) == $todayMonth) && (substr($value['DateISO'], -2) == $todayDay)) {
             $bdToday[] = $value;
         }
     }
@@ -51,30 +51,30 @@ function checkAnniversaires($data)
 
 /* This is where the mails are sent.
  * @todo: use a mail library, e.g. http://swiftmailer.org/
-*/
-function announceAnniversary($recipients, $happyGuys)
-{
+ */
+
+function announceAnniversary($recipients, $happyGuys) {
     $to = 'nicolas.borboen@epfl.ch';
     $subject = '[PHANNIV] Today\'s anniversary';
     $message = "hello, did you know, today is \n";
     foreach ($happyGuys as $index => $value) {
-        $message .= '-> '.$value['Prénom'].' '.$value['Nom']."\n";
+        $message .= '-> ' . $value['Prénom'] . ' ' . $value['Nom'] . "\n";
     }
     $message .= "'s birthday !";
-    $headers = 'From: nicolas.borboen@epfl.ch'."\r\n".
-    'Reply-To: no-reply@epfl.ch'."\r\n".
-    'X-Mailer: PHP/'.phpversion();
+    $headers = 'From: nicolas.borboen@epfl.ch' . "\r\n" .
+            'Reply-To: no-reply@epfl.ch' . "\r\n" .
+            'X-Mailer: PHP/' . phpversion();
 
     mail($to, $subject, $message, $headers);
 }
 
 /*
-* If someone has his birthday, email all the other persons
-* @Todo, @bug: if two people get their birthdays the same day,
-               both should received the mail for the other one...
-*/
-function getRecipients($all, $birthDayGuys)
-{
+ * If someone has his birthday, email all the other persons
+ * @Todo, @bug: if two people get their birthdays the same day,
+  both should received the mail for the other one...
+ */
+
+function getRecipients($all, $birthDayGuys) {
     $recipients = $all;
     foreach ($birthDayGuys as $key => $value) {
         $toRemove = array_search($value['email'], array_column($all, 'email'));
@@ -85,6 +85,27 @@ function getRecipients($all, $birthDayGuys)
     return array_column($recipients, 'email');
 }
 
+function addDataInCSV($val) {
+    // get previous content from CSV
+    $handle = fopen("data.csv", "a+");
+    fputcsv($handle, $val); // here you can change delimiter/enclosure
+}
+
+function debug($val) {
+    print "<pre>";
+    print_r($_POST);
+    print "</pre>";
+}
+
+function checkdata($data, &$errors) {
+    $date = $data['dateISO'];
+    if (preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $date)) {
+        return true;
+    } else {
+        $errors['date'] = "Baaaad date.";
+    }
+}
+
 /* In case we use phanniv.php in Command Line Interface */
 if (php_sapi_name() == 'cli') {
     print_r(getDynCSVData());
@@ -92,23 +113,51 @@ if (php_sapi_name() == 'cli') {
     //print_r(checkAnniversaires($everyOne));
 } else {
     /* For any other use case but CLI */
-?>
+    include "browser.php";
+    $browser = new Browser();
+    echo $browser->getBrowser();
 
-<!doctype html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>PHANNIV</title>
-    </head>
-    <body>
-        <pre>
-            <?php
-            print_r(getDynCSVData());
-            ?>
-        </pre>
-    </body>
-</html>
 
-<?php
+    if ($_POST) {
+        debug($_POST);
+        checkdata($_POST, $errors);
+        addDataInCSV($_POST);
+    }
+    ?>
+
+    <!doctype html>
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>PHANNIV</title>
+            <!-- Latest compiled and minified CSS -->
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+            <!-- Optional theme -->
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+            <!-- Latest compiled and minified JavaScript -->
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        </head>
+        <body>
+            <form method="post" action="">
+                <label> Prénom : <input type="text" name="firstname" /></label><br/>
+                <label> Nom : <input type="text" name="lastname" /></label><br/>
+                <label>Date de naissance : <input type="text" name="dateISO" /></label><br/>
+    <?php if (isset($errors['date'])) { ?>
+                    <div class="alert alert-danger" role="alert"><blink><?= $errors['date'] ?></blink></div>
+                <?php } ?>
+                <label> Mail : <input type="mail" name="email"/></label><br/>
+                <input type="submit"/>
+            </form>
+            <pre>
+    <?php
+    print_r(getDynCSVData());
+    ?>
+            </pre>
+        </body>
+    </html>
+
+    <?php
 }
 ?>

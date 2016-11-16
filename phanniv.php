@@ -106,6 +106,19 @@ function checkdata($data, &$errors) {
     }
 }
 
+function checkText($fieldname, $data, &$errors){
+  $firstname = filter_var_array($data, $fieldname, FILTER_SANITIZE_SPECIAL_CHARS);
+  if(!empty($firstname)){
+    if($fieldname == "text") {
+      echo "ok!";
+    }
+    return true;
+  }else{
+    //echo "test else";
+    $errors[$fieldname] = "You can't leave it empty";
+  }
+}
+
 /* In case we use phanniv.php in Command Line Interface */
 if (php_sapi_name() == 'cli') {
     print_r(getDynCSVData());
@@ -121,6 +134,9 @@ if (php_sapi_name() == 'cli') {
     if ($_POST) {
         debug($_POST);
         checkdata($_POST, $errors);
+        checkText("firstname", $_POST, $errors);
+        checkText("lastname", $_POST, $errors);
+        //checkFirstName($_POST, $errors);
         addDataInCSV($_POST);
     }
     ?>
@@ -140,15 +156,21 @@ if (php_sapi_name() == 'cli') {
             <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         </head>
         <body>
-            <form method="post" action="">
-                <label> Prénom : <input type="text" name="firstname" /></label><br/>
-                <label> Nom : <input type="text" name="lastname" /></label><br/>
-                <label>Date de naissance : <input type="text" name="dateISO" /></label><br/>
+            <form method="post" action="" class= "form-group">
+                <label> Prénom : <input class="form-control" type="text" name="firstname" /></label><br/>
+                <?php if (isset($errors['firstname'])) { ?>
+                                <div class="alert alert-danger" role="alert"><?= $errors['firstname'] ?></div>
+                            <?php } ?>
+                <label> Nom : <input class="form-control" type="text" name="lastname" /></label><br/>
+                <?php if (isset($errors['lastname'])) { ?>
+                                <div class="alert alert-danger" role="alert"><?= $errors['lastname'] ?></div>
+                            <?php } ?>
+                <label>Date de naissance : <input class="form-control" type="text" name="dateISO" /></label><br/>
     <?php if (isset($errors['date'])) { ?>
-                    <div class="alert alert-danger" role="alert"><blink><?= $errors['date'] ?></blink></div>
+                    <div class="alert alert-danger" role="alert"><?= $errors['date'] ?></div>
                 <?php } ?>
-                <label> Mail : <input type="mail" name="email"/></label><br/>
-                <input type="submit"/>
+                <label> Mail : <input class="form-control" type="mail" name="email"/></label><br/>
+                <input class="btn btn-default" type="submit"/>
             </form>
             <pre>
     <?php

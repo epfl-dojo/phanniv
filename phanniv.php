@@ -75,6 +75,43 @@ function announceAnniversary($recipients, $happyGuys)
     mail($to, $subject, $message, $headers);
 }
 
+
+// Return the email part containing the birthday message
+function getBirthdayMessage($happyGuys)
+{
+    $message = "Hello, did you know, today is \n";
+    foreach ($happyGuys as $index => $value) {
+        $message .= '-> '.$value['Prénom'].' '.$value['Nom']."\n";
+    }
+    $message .= "'s birthday !";
+    $headers = 'From: nicolas.borboen@epfl.ch'."\r\n".
+            'Reply-To: no-reply@epfl.ch'."\r\n".
+            'X-Mailer: PHP/'.phpversion();
+
+    mail($to, $subject, $message, $headers);
+}
+
+// Sort mail content regarding the options
+function mailContent($people) {
+  $message = "";
+  foreach ($people) {
+    if($people['opt_xkcd']){
+      $message .= "xkcd content";
+    }
+    if($people['opt_vulnerabilities']){
+      $message .= "vulnerabilities";
+    }
+    if($people['dateISO'] != date('Y-m-d')){
+      $message .=  getBirthdayMessage();
+    }
+  }
+
+
+  // return the mail content in function of recipients
+  // array("nom.prenom@email.com" => "message", ...)
+  return $messages;
+}
+
 /*
  * If someone has his birthday, email all the other persons
  * @Todo, @bug: if two people get their birthdays the same day,
@@ -138,6 +175,14 @@ function checkText($fieldname, &$errors)
     }
 }
 
+
+// Be sure that empty checkbox takes false when writting the CSV file
+function checkCHBox($data)
+{
+  $_POST['opt_xkcd'] = isset($data['opt_xkcd']) ?  "true" : "false";
+  $_POST['opt_vulnerabilities'] = isset($data['opt_vulnerabilities']) ?  "true" : "false";
+}
+
 /* In case we use phanniv.php in Command Line Interface */
 if (php_sapi_name() == 'cli') {
     print_r(getDynCSVData());
@@ -156,6 +201,7 @@ if (php_sapi_name() == 'cli') {
         checkText('firstname', $errors);
         checkText('lastname', $errors);
         checkemail('email', $errors);
+        checkCHBox($_POST);
         if (!count($errors)) {
             addDataInCSV($_POST);
         }
@@ -177,30 +223,30 @@ if (php_sapi_name() == 'cli') {
         </head>
         <body>
             <form method="post" action="" class= "form-group">
-                <label> Prénom : <input class="form-control" type="text" name="firstname" /></label><br/>
-                <?php if (isset($errors['firstname'])) {
-        ?>
-                                <div class="alert alert-danger" role="alert"><?= $errors['firstname'] ?></div>
-                            <?php
-    } ?>
-                <label> Nom : <input class="form-control" type="text" name="lastname" /></label><br/>
-                <?php if (isset($errors['lastname'])) {
-        ?>
-                                <div class="alert alert-danger" role="alert"><?= $errors['lastname'] ?></div>
-                            <?php
-    } ?>
-                <label>Date de naissance : <input class="form-control" type="text" name="dateISO" /></label><br/>
-    <?php if (isset($errors['date'])) {
-        ?>
+                <label> Prénom : <input class="form-control" type="text" name="firstname" value="<?= isset($_POST['firstname']) ? $_POST['firstname'] : ''; ?>"/></label><br/>
+                <?php if (isset($errors['firstname'])) { ?>
+                  <div class="alert alert-danger" role="alert"><?= $errors['firstname'] ?></div>
+                <?php } ?>
+                <label> Nom : <input class="form-control" type="text" name="lastname" value="<?= isset($_POST['lastname']) ? $_POST['lastname'] : ''; ?>"/></label><br/>
+                <?php if (isset($errors['lastname'])) { ?>
+                  <div class="alert alert-danger" role="alert"><?= $errors['lastname'] ?></div>
+                <?php } ?>
+                <label>Date de naissance : <input class="form-control" type="text" name="dateISO" value="<?= isset($_POST['dateISO']) ? $_POST['dateISO'] : ''; ?>"/></label><br/>
+                <?php if (isset($errors['date'])) {     ?>
                     <div class="alert alert-danger" role="alert"><?= $errors['date'] ?></div>
-                <?php
-    } ?>
-                <label> Mail : <input class="form-control" type="mail" name="email"/></label><br/>
-                <?php if (isset($errors['email'])) {
-        ?>
+                <?php } ?>
+                <label> Mail : <input class="form-control" type="mail" name="email" value="<?= isset($_POST['email']) ? $_POST['email'] : ''; ?>"/></label><br/>
+                <?php if (isset($errors['email'])) {     ?>
                   <div class="alert alert-danger" role="alert"><?= $errors['email'] ?></div>
-                <?php
-    } ?>
+                <?php } ?>
+                <label> OPT xkcd : <input class="form-control" type="checkbox" name="opt_xkcd" value="true" <?= !$_POST['opt_xkcd'] ? 'checked="true"' : ''; ?>/></label><br/>
+                <?php if (isset($errors['opt_xkcd'])) {     ?>
+                  <div class="alert alert-danger" role="alert"><?= $errors['opt_xkcd'] ?></div>
+                <?php } ?>
+                <label> OPT vulnerbilities : <input class="form-control" type="checkbox" name="opt_vulnerabilities" value="true" <?= !$_POST['opt_vulnerabilities'] ? 'checked="true"' : ''; ?>/></label><br/>
+                <?php if (isset($errors['opt_vulnerabilities'])) {     ?>
+                  <div class="alert alert-danger" role="alert"><?= $errors['opt_vulnerabilities'] ?></div>
+                <?php } ?>
                 <input class="btn btn-default" type="submit"/>
             </form>
             <pre>

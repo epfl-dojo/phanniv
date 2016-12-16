@@ -1,7 +1,7 @@
-Prénom,Nom,DateISO,email
-Nicolas,Borboën,1980-02-25,nicolas.borboen+phanniv@epfl.ch
-Richard Victor,Martins Tenorio,1999-01-14,richard.martinstenorio@epfl.ch
-Nicolas,Crausaz,1999-08-03,nicolas.crausaz@epfl.ch
-Loïc,Humbert,1998-11-13,loic.humbert@epfl.ch
-Bebe,Plop,2016-11-18,bebe.plop@epfl.ch
-SuperBebe,Hello,2016-10-21,bebe.meilleur@epfl.ch
+Prénom,Nom,DateISO,email,opt_xkcd,opt_vulnerabilities
+Nicolas,Borboën,1980-02-25,nicolas.borboen+phanniv@epfl.ch,true,true
+Richard Victor,Martins Tenorio,1999-01-14,richard.martinstenorio@epfl.ch,true,true
+Nicolas,Crausaz,1999-08-03,nicolas.crausaz@epfl.ch,true,true
+Loïc,Humbert,1998-11-13,loic.humbert@epfl.ch,true,true
+Bebe,Plop,2016-12-16,loic.humbert@epfl.ch,true,true
+SuperBebe,Hello,2016-12-16,dominique.quatravaux@epfl.ch,true,true

@@ -68,12 +68,13 @@ function announceAnniversary($recipients, $happyGuys)
         $message .= '-> '.$value['Prénom'].' '.$value['Nom']."\n";
     }
     $message .= "'s birthday !";
-    $headers = 'From: nicolas.borboen@epfl.ch'."\r\n".
+    $headers = 'From: loic.humbert@epfl.ch'."\r\n".
             'Reply-To: no-reply@epfl.ch'."\r\n".
             'X-Mailer: PHP/'.phpversion();
 
     mail($to, $subject, $message, $headers);
 }
+
 
 
 // Return the email part containing the birthday message
@@ -84,7 +85,7 @@ function getBirthdayMessage($happyGuys)
         $message .= '-> '.$value['Prénom'].' '.$value['Nom']."\n";
     }
     $message .= "'s birthday !";
-    $headers = 'From: nicolas.borboen@epfl.ch'."\r\n".
+    $headers = 'From: loic.humbert@epfl.ch'."\r\n".
             'Reply-To: no-reply@epfl.ch'."\r\n".
             'X-Mailer: PHP/'.phpversion();
 
@@ -94,7 +95,7 @@ function getBirthdayMessage($happyGuys)
 // Sort mail content regarding the options
 function mailContent($people) {
   $message = "";
-  foreach ($people) {
+/*  foreach ($people) {
     if($people['opt_xkcd']){
       $message .= "xkcd content";
     }
@@ -104,7 +105,7 @@ function mailContent($people) {
     if($people['dateISO'] != date('Y-m-d')){
       $message .=  getBirthdayMessage();
     }
-  }
+  }*/
 
 
   // return the mail content in function of recipients
@@ -185,10 +186,29 @@ function checkCHBox($data)
 
 /* In case we use phanniv.php in Command Line Interface */
 if (php_sapi_name() == 'cli') {
-    print_r(getDynCSVData());
+    //print_r(getDynCSVData());
     $everyOne = getDynCSVData();
-    announceAnniversary(getRecipients($everyOne, checkAnniversaires($everyOne)), checkAnniversaires($everyOne));
-    //print_r(checkAnniversaires($everyOne));
+    $happyGuys = checkAnniversaires($everyOne);
+    $recipients = getRecipients($everyOne,$happyGuys);
+    announceAnniversary($recipients, $happyGuys);
+    // In case of multiple anniversaries, each person receives the announcements
+    // for everyone except themselves
+    foreach($happyGuys as $special) {
+      $otherHappyGuys = getRecipients($happyGuys, [$special]);
+      if (count($otherHappyGuys) == 0) {
+        // There is a single anniversary today; so $special receives
+        // nothing
+
+
+      } else {
+        $otherFullGuys = Array();
+        foreach ($otherHappyGuys as $val) {
+          $otherFullGuys[] = ???;
+          //TODO: replace ???
+        }
+        announceAnniversary([$special], $otherFullGuys);
+      }
+    }
 } else {
     /* For any other use case but CLI */
     include 'browser.php';
